@@ -1,0 +1,187 @@
+#include <iostream>
+#include <vector>
+#include <map>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+using namespace std;
+struct Data {
+	string name;
+	int amount;
+	int price;
+	string type;
+	int shelf;
+};
+class Pharmacy {
+private:
+	map<int, vector<string>> info;
+	fstream file;
+
+public:
+	Pharmacy() {
+		info.clear();
+		file.open("a.txt", ios::in | ios::out);
+		readFromFile();
+	}
+	void readFromFile() {
+		while (!file.eof()) {
+			string id , t , line;
+			getline(getline(file, id , '|'), line , '\n');
+			istringstream ss(line);
+			while (getline(ss, t, '|')) {
+				info[stoi(id)].push_back(t);
+			}
+		}
+
+		file.close();
+	}
+	void writeToFile() {
+		file.open("a.txt", ios::out);
+		for (auto it = info.begin(); it != info.end(); it++) {
+			file << it->first << "|";
+			for (int i = 0; i < it->second.size(); i++) {
+				file << it->second[i] << "|";
+			}
+			file << "\n";
+		}
+		file.close();
+	}
+	void Print(int id) {
+		cout << setw(25) <<  info[id][0] 
+			<< setw(8) << info[id][1] 
+			<< setw(8)<< info[id][2] 
+			<< setw(15) << info[id][3] 
+			<< setw(8) << info[id][4] << "\n";
+	}
+	void printInfo() {
+		cout << left << setw(8) << "ID"
+			<< setw(25) << "Name"
+			<< setw(8) << "Amount"
+			<< setw(8) << "Price"
+			<< setw(15) << "Type"
+			<< setw(8) << "Shelf" << "\n";
+	}
+	void Read() {
+		system("CLS");
+		printInfo();
+		for (auto it = info.begin(); it != info.end(); it++) {
+			cout << left << setw(8) <<it->first;
+			Print(it->first);
+		}
+		system("pause");
+	}
+	void insert() {
+		system("CLS");
+		int id;
+		string t;
+		cout << "Enter the id of the drug : ";
+		cin >> id;
+		if (info[id].size() != 0) {
+			cout << "The drug is already exists , Enter the new Price : ";
+			cin >> t;
+			info[id][2] = t;
+		}
+		else {
+			cin.ignore();
+			cout << "Enter the drug name : ";
+			getline(cin, t);
+			info[id].push_back(t);
+			cout << "Enter the drug amount : ";
+			cin >> t;
+			info[id].push_back(t);
+			cout << "Enter the drug price : ";
+			cin >> t;
+			info[id].push_back(t);
+			cout << "Enter the type of package : ";
+			cin >> t;
+			info[id].push_back(t);
+			cout << "Enter the shelf number : ";
+			cin >> t;
+			info[id].push_back(t);
+		}
+		system("CLS");
+	}
+	void Search() {
+		int i;
+		do {
+			system("CLS");
+			cout << "Search By :\n1:ID\n2:Name\n3:Type\n0:Back\n";
+			cin >> i;
+			searchData(i);
+		} while (i != 0);
+	}
+	void searchData(int k) {
+		system("CLS");
+		if (k == 1) {
+			int id;
+			cout << "Enter The ID : ";
+			cin >> id;
+			if (info[id].size() != 0) {
+				printInfo();
+				cout << left << setw(8) << id;
+				Print(id);
+			}
+			else {
+				cout << "Not found\n";
+				info.erase(id);
+			}
+			system("pause");
+		}
+		else if(k == 2 || k == 3) {
+			bool ok = false;
+			cout << ((k == 2) ? "Enter The name of the Drug : " : "Enter the Type of the Drug : ");
+			int id = (k == 2) ? 0 : 3;
+			string t;
+			cin.ignore();
+			getline(cin, t);
+			for (auto it = info.begin(); it != info.end(); it++) {
+				if (it->second[id] == t) {
+					if (!ok) printInfo();
+					cout << left << setw(8) << it->first; //print id
+					Print(it->first); // print data by id
+					ok = true;
+				}
+			}
+			if (!ok) cout << ((k == 2) ? "Cannot Find any drug with this name.\n" : "Cannot Find any Type with this name.\n");
+			system("pause");
+		}
+	}
+	void Delete() {
+		system("CLS");
+		int id;
+		cout << "Enter the Record ID to Delete : ";
+		cin >> id;
+		if (info[id].size() == 0) {
+			cout << "No such Record\n";
+		}
+		else cout << "Record Deleted Successfully\n";
+		info.erase(id);
+		system("pause");
+	}
+};
+int main() {
+	Pharmacy * ph = new Pharmacy();
+	int i;
+	do {
+		system("CLS");
+		cout << "1:Insert Data\n2:Delete Data\n3:Search For data\n4:Show All Data\n0:Exit\n";
+		cin >> i;
+		switch (i) {
+		case 1:
+			ph->insert();
+			break;
+		case 2:
+			ph->Delete();
+			break;
+		case 3:
+			ph->Search();
+			break;
+		case 4:
+			ph->Read();
+			break;
+		}
+	} while (i != 0);
+	ph->writeToFile();
+	cout << "Changes Saved.\n";
+}
